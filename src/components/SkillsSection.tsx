@@ -1,26 +1,36 @@
 import { motion } from "framer-motion";
-import { Code, Palette, Wrench, Database } from "lucide-react";
+import { Code, Palette, Wrench, Database, Brain, Server } from "lucide-react";
 
 const skillCategories = [
   {
     title: "Languages",
     icon: Code,
-    skills: ["HTML", "CSS/SCSS", "JavaScript", "TypeScript"],
+    skills: ["HTML5", "CSS/SCSS", "JavaScript", "TypeScript", "Python", "SQL"],
   },
   {
-    title: "Frameworks",
-    icon: Wrench,
-    skills: ["React.js", "Next.js", "Vue.js", "Node.js", "Nest.js", "Redux"],
-  },
-  {
-    title: "UI & Design",
+    title: "Frontend",
     icon: Palette,
-    skills: ["Tailwind CSS", "Material UI", "shadcn/ui", "Figma"],
+    skills: ["React.js", "Next.js", "Vue.js", "Redux", "Zustand", "Tailwind CSS", "Material UI", "shadcn/ui", "Framer Motion"],
   },
   {
-    title: "Tools & Databases",
+    title: "Backend & APIs",
+    icon: Server,
+    skills: ["Node.js", "Nest.js", "Express.js", "REST APIs", "GraphQL", "WebSockets", "JWT Auth"],
+  },
+  {
+    title: "Databases & ORMs",
     icon: Database,
-    skills: ["Git", "GitHub", "MongoDB", "Firebase", "SQLite", "Vercel", "Netlify"],
+    skills: ["MongoDB", "PostgreSQL", "Firebase", "SQLite", "Drizzle ORM", "Prisma", "Redis"],
+  },
+  {
+    title: "DevOps & Tools",
+    icon: Wrench,
+    skills: ["Git", "GitHub", "Docker", "CI/CD", "Vercel", "Netlify", "Figma", "VS Code", "Npm/Yarn"],
+  },
+  {
+    title: "AI & Machine Learning",
+    icon: Brain,
+    skills: ["OpenAI API", "LangChain", "Prompt Engineering", "RAG", "AI Chatbots", "LLM Integration", "Vector Databases"],
   },
 ];
 
@@ -42,14 +52,14 @@ export default function SkillsSection() {
         </h2>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {skillCategories.map((cat, i) => (
           <motion.div
             key={cat.title}
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ delay: i * 0.1, duration: 0.45 }}
+            transition={{ delay: i * 0.08, duration: 0.45 }}
             className="glass-card glow-border p-6 group hover:border-primary/30 transition-all duration-300"
           >
             <div className="flex items-center gap-3 mb-5">
@@ -65,7 +75,7 @@ export default function SkillsSection() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 + j * 0.04, duration: 0.3 }}
+                  transition={{ delay: i * 0.05 + j * 0.03, duration: 0.3 }}
                   whileHover={{ scale: 1.08, y: -2, transition: { duration: 0.15 } }}
                   className="px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground text-sm font-medium border border-border/50 hover:border-primary/40 hover:text-primary cursor-default transition-colors duration-200"
                 >
