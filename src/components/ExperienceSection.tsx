@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Briefcase } from "lucide-react";
+import { Briefcase, MapPin, Calendar } from "lucide-react";
 
 const experiences = [
   {
@@ -7,11 +7,12 @@ const experiences = [
     role: "Software Development Engineer - 1",
     period: "Oct 2024 – Present",
     location: "Remote",
+    color: "primary",
     points: [
-      "Contributing to Autographa, a cross-platform (Web, Electron, PWA) Bible translation and study application.",
-      "Developed panel-based synchronized workspace using React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Zustand.",
-      "Implemented offline-first data handling with Drizzle ORM + SQLite and integrated cloud sync, audio recording.",
-      "Enhanced accessibility with i18next-based multi-language support (EN, ES, FR, HI, PT).",
+      "Contributing to Autographa — cross-platform Bible translation app (Web, Electron, PWA)",
+      "Built panel-based synchronized workspace with React, TypeScript, Vite, shadcn/ui, Zustand",
+      "Implemented offline-first data with Drizzle ORM + SQLite, cloud sync, audio recording (Tone.js)",
+      "Added i18next multi-language support (EN, ES, FR, HI, PT) and desktop integration via Electron",
     ],
   },
   {
@@ -19,56 +20,90 @@ const experiences = [
     role: "Associate Software Engineer",
     period: "Oct 2022 – Sept 2024",
     location: "Noida",
+    color: "accent",
     points: [
-      "Developed proof of concepts integrating complex APIs with ReactJS and Next.js.",
-      "Built Frontend of an Admin Dashboard aimed at usability and task management efficiency.",
-      "Utilized React, Redux, Tailwind CSS, Nest.js, MongoDB, Git, GitHub, Figma, and JWT Token.",
+      "Developed proof of concepts integrating complex APIs with ReactJS and Next.js",
+      "Built Admin Dashboard frontend focused on usability and task management",
+      "Worked with React, Redux, Tailwind CSS, Nest.js, MongoDB, Figma, JWT",
     ],
   },
 ];
 
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.2 } },
+};
+
 export default function ExperienceSection() {
   return (
     <section id="experience" className="section-padding max-w-4xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-        <h2 className="text-3xl md:text-4xl font-bold mb-2">
-          <span className="gradient-text">Experience</span>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-[2px] bg-primary" />
+          <span className="font-mono text-xs text-primary tracking-widest uppercase">Career</span>
+        </div>
+        <h2 className="text-3xl md:text-4xl font-bold mb-12 text-foreground">
+          Work <span className="gradient-text">Experience</span>
         </h2>
-        <p className="text-muted-foreground mb-12">Where I've been building things.</p>
       </motion.div>
-      <div className="relative border-l-2 border-border pl-8 space-y-12">
+
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-50px" }}
+        className="space-y-8"
+      >
         {experiences.map((exp, i) => (
           <motion.div
             key={exp.company}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.15 }}
-            className="relative"
+            variants={{
+              hidden: { opacity: 0, y: 30, scale: 0.98 },
+              show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+            }}
+            whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+            className="glass-card glow-border glow-border-hover p-6 md:p-8 relative overflow-hidden transition-all duration-300"
           >
-            <div className="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-primary glow-border" />
-            <div className="glass-card glow-border p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-primary" />
+            {/* Accent stripe */}
+            <div className={`absolute top-0 left-0 w-1 h-full ${i === 0 ? "bg-primary" : "bg-accent"}`} />
+
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 pl-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Briefcase className={`w-4 h-4 ${i === 0 ? "text-primary" : "text-accent"}`} />
                   <h3 className="font-semibold text-lg text-foreground">{exp.company}</h3>
                 </div>
-                <span className="text-sm text-muted-foreground font-mono">{exp.period}</span>
+                <p className={`text-sm font-medium ${i === 0 ? "text-primary" : "text-accent"}`}>{exp.role}</p>
               </div>
-              <p className="text-primary text-sm font-medium mb-1">{exp.role}</p>
-              <p className="text-xs text-muted-foreground mb-4">{exp.location}</p>
-              <ul className="space-y-2">
-                {exp.points.map((p, j) => (
-                  <li key={j} className="text-sm text-secondary-foreground flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    {p}
-                  </li>
-                ))}
-              </ul>
+              <div className="flex items-center gap-4 mt-2 md:mt-0 text-xs text-muted-foreground font-mono">
+                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{exp.period}</span>
+                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{exp.location}</span>
+              </div>
             </div>
+
+            <ul className="space-y-2 pl-4">
+              {exp.points.map((p, j) => (
+                <motion.li
+                  key={j}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 * j, duration: 0.3 }}
+                  className="text-sm text-secondary-foreground flex items-start gap-3"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${i === 0 ? "bg-primary/60" : "bg-accent/60"}`} />
+                  {p}
+                </motion.li>
+              ))}
+            </ul>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
