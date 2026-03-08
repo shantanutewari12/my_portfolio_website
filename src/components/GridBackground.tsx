@@ -1,51 +1,20 @@
 import { useEffect, useRef } from "react";
 
-const codeSnippets = [
-  "const app = express()",
-  "import React",
-  "async fetch()",
-  "res.json(data)",
-  "<App />",
-  "useEffect()",
-  "export default",
-  "useState()",
-  "await db.query()",
-  "router.get('/')",
-  "npm run dev",
-  "git push",
-  "docker up",
-  "SELECT *",
-  "jwt.sign()",
-  "Promise<void>",
-  "interface {}",
-  "type User",
-  "next.config",
-  "console.log()",
-];
-
-interface Bubble {
+interface Orb {
   x: number;
   y: number;
   r: number;
-  vy: number;
   vx: number;
-  baseAlpha: number;
-  phase: number;
-  pulse: number;
-}
-
-interface Code {
-  x: number;
-  y: number;
   vy: number;
-  text: string;
-  baseAlpha: number;
+  hue: number;
+  alpha: number;
   phase: number;
 }
 
 export default function GridBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef(0);
+  const mouse = useRef({ x: -9999, y: -9999 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,104 +37,120 @@ export default function GridBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    // ── Create elements ──
-    const bubbles: Bubble[] = Array.from({ length: 22 }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: 6 + Math.random() * 20,
-      vy: -(0.15 + Math.random() * 0.25),
-      vx: (Math.random() - 0.5) * 0.15,
-      baseAlpha: 0.025 + Math.random() * 0.035,
-      phase: Math.random() * Math.PI * 2,
-      pulse: 0.4 + Math.random() * 0.8,
-    }));
+    const onMove = (e: MouseEvent) => { mouse.current.x = e.clientX; mouse.current.y = e.clientY; };
+    const onLeave = () => { mouse.current.x = -9999; mouse.current.y = -9999; };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    window.addEventListener("mouseleave", onLeave);
 
-    const codes: Code[] = Array.from({ length: 10 }, (_, i) => ({
+    // Create orbs — big soft glowing bubbles
+    const orbs: Orb[] = Array.from({ length: 18 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vy: -(0.1 + Math.random() * 0.2),
-      text: codeSnippets[i % codeSnippets.length],
-      baseAlpha: 0.035 + Math.random() * 0.03,
+      r: 30 + Math.random() * 60,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      hue: Math.random() > 0.3 ? 155 : 265, // green or purple
+      alpha: 0.03 + Math.random() * 0.03,
       phase: Math.random() * Math.PI * 2,
     }));
 
     let t = 0;
 
     const draw = () => {
-      t += 0.004;
+      t += 0.003;
       ctx.clearRect(0, 0, W, H);
 
-      // ── Bubbles ──
-      for (const b of bubbles) {
-        b.y += b.vy;
-        b.x += b.vx + Math.sin(t + b.phase) * 0.12;
+      const mx = mouse.current.x;
+      const my = mouse.current.y;
 
-        if (b.y < -b.r * 3) { b.y = H + b.r * 2; b.x = Math.random() * W; }
-        if (b.x < -60) b.x = W + 30;
-        if (b.x > W + 60) b.x = -30;
+      for (const orb of orbs) {
+        // ── Mouse repulsion ──
+        const dx = orb.x - mx;
+        const dy = orb.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const repelRadius = 180;
 
-        const fade = Math.min(b.y / 120, (H - b.y) / 120, 1);
-        const alpha = (b.baseAlpha + Math.sin(t * b.pulse + b.phase) * 0.01) * Math.max(fade, 0);
+        if (dist < repelRadius && dist > 0) {
+          const force = (1 - dist / repelRadius) * 2.5;
+          orb.vx += (dx / dist) * force * 0.08;
+          orb.vy += (dy / dist) * force * 0.08;
+        }
 
-        // Soft glow
-        const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 2);
-        g.addColorStop(0, `rgba(34,211,160,${alpha * 0.5})`);
-        g.addColorStop(1, "rgba(34,211,160,0)");
-        ctx.fillStyle = g;
+        // ── Drift + damping ──
+        orb.vx *= 0.995;
+        orb.vy *= 0.995;
+
+        // Gentle wobble
+        orb.vx += Math.sin(t * 0.5 + orb.phase) * 0.005;
+        orb.vy += Math.cos(t * 0.4 + orb.phase) * 0.005;
+
+        orb.x += orb.vx;
+        orb.y += orb.vy;
+
+        // Wrap edges softly
+        if (orb.x < -orb.r * 2) orb.x = W + orb.r;
+        if (orb.x > W + orb.r * 2) orb.x = -orb.r;
+        if (orb.y < -orb.r * 2) orb.y = H + orb.r;
+        if (orb.y > H + orb.r * 2) orb.y = -orb.r;
+
+        // ── Mouse proximity glow boost ──
+        const glowBoost = dist < 250 ? (1 - dist / 250) * 0.06 : 0;
+        const pulse = Math.sin(t * 1.5 + orb.phase) * 0.008;
+        const a = orb.alpha + pulse + glowBoost;
+
+        const isGreen = orb.hue === 155;
+        const rgb = isGreen ? "34,211,160" : "147,51,234";
+
+        // Outer soft glow (large radius)
+        const g1 = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r * 3);
+        g1.addColorStop(0, `rgba(${rgb},${a * 0.7})`);
+        g1.addColorStop(0.5, `rgba(${rgb},${a * 0.2})`);
+        g1.addColorStop(1, `rgba(${rgb},0)`);
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r * 2, 0, 6.283);
+        ctx.arc(orb.x, orb.y, orb.r * 3, 0, 6.283);
+        ctx.fillStyle = g1;
         ctx.fill();
 
-        // Ring
+        // Inner core
+        const g2 = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+        g2.addColorStop(0, `rgba(${rgb},${a * 1.5})`);
+        g2.addColorStop(0.6, `rgba(${rgb},${a * 0.4})`);
+        g2.addColorStop(1, `rgba(${rgb},0)`);
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r, 0, 6.283);
-        ctx.strokeStyle = `rgba(34,211,160,${alpha * 1.2})`;
-        ctx.lineWidth = 0.8;
+        ctx.arc(orb.x, orb.y, orb.r, 0, 6.283);
+        ctx.fillStyle = g2;
+        ctx.fill();
+
+        // Bubble ring
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.r * 0.9, 0, 6.283);
+        ctx.strokeStyle = `rgba(${rgb},${a * 0.8})`;
+        ctx.lineWidth = 0.6;
         ctx.stroke();
 
-        // Tiny highlight
+        // Specular highlight
         ctx.beginPath();
-        ctx.arc(b.x - b.r * 0.25, b.y - b.r * 0.25, b.r * 0.15, 0, 6.283);
-        ctx.fillStyle = `rgba(34,211,160,${alpha * 0.7})`;
+        ctx.arc(orb.x - orb.r * 0.2, orb.y - orb.r * 0.25, orb.r * 0.12, 0, 6.283);
+        ctx.fillStyle = `rgba(255,255,255,${a * 0.5})`;
         ctx.fill();
       }
 
-      // ── Connection lines (only check nearby) ──
-      for (let i = 0; i < bubbles.length; i++) {
-        const a = bubbles[i];
-        for (let j = i + 1; j < bubbles.length; j++) {
-          const b = bubbles[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
+      // ── Connections between nearby orbs ──
+      for (let i = 0; i < orbs.length; i++) {
+        for (let j = i + 1; j < orbs.length; j++) {
+          const dx = orbs[i].x - orbs[j].x;
+          const dy = orbs[i].y - orbs[j].y;
           const d2 = dx * dx + dy * dy;
-          if (d2 < 22500) { // 150^2
-            const alpha = (1 - Math.sqrt(d2) / 150) * 0.02;
+          if (d2 < 40000) { // 200px
+            const a = (1 - Math.sqrt(d2) / 200) * 0.015;
             ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(34,211,160,${alpha})`;
-            ctx.lineWidth = 0.5;
+            ctx.moveTo(orbs[i].x, orbs[i].y);
+            ctx.lineTo(orbs[j].x, orbs[j].y);
+            ctx.strokeStyle = `rgba(34,211,160,${a})`;
+            ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         }
-      }
-
-      // ── Floating code ──
-      ctx.font = "11px JetBrains Mono,monospace";
-      for (const c of codes) {
-        c.y += c.vy;
-        c.x += Math.sin(t * 0.6 + c.phase) * 0.1;
-
-        if (c.y < -20) {
-          c.y = H + 15;
-          c.x = Math.random() * W;
-          c.text = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
-        }
-
-        const fade = Math.min(c.y / 100, (H - c.y) / 100, 1);
-        const alpha = c.baseAlpha * Math.max(fade, 0);
-        ctx.fillStyle = `rgba(34,211,160,${alpha})`;
-        ctx.fillText(c.text, c.x, c.y);
       }
 
       rafRef.current = requestAnimationFrame(draw);
@@ -176,15 +161,14 @@ export default function GridBackground() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseleave", onLeave);
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 -z-10">
-      <canvas ref={canvasRef} className="absolute inset-0" />
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse 50% 35% at 50% 0%, hsl(155 75% 50% / 0.035), transparent 70%)"
-      }} />
+    <div className="fixed inset-0 -z-10 pointer-events-none">
+      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-auto" />
     </div>
   );
 }
