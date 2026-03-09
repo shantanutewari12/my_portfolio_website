@@ -11,7 +11,7 @@ The goal of this portfolio is to present my work in a clean, modern interface wh
 You can view the live portfolio here:
 
 **Portfolio URL:**  
-`<ADD_YOUR_DEPLOYED_PORTFOLIO_LINK_HERE>`
+`https://my-portfolio-websitee.vercel.app/`
 
 ---
 
