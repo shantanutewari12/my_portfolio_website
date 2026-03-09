@@ -67,7 +67,7 @@ export default function ContactSection() {
         className="text-center mt-20 space-y-2"
       >
         <p className="text-muted-foreground text-xs font-mono">
-          <span className="text-primary">{"</"}</span>built with React & Framer Motion<span className="text-primary">{">"}</span>
+          <span className="text-primary">{"</"}</span>made with curiosity💭 & caffeine☕<span className="text-primary">{">"}</span>
         </p>
         <p className="text-muted-foreground/50 text-xs font-mono">© 2024 Shantanu Tiwari</p>
       </motion.div>
